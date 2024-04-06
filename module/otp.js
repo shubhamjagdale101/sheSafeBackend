@@ -1,16 +1,18 @@
 const otpGenerator = require("otp-generator")
 require('dotenv').config()
+
 const mp = new Map()
+const otpExpTime = process.env.OTP_EXP_TIME
 
 const generateOtp = (len) => {
     return otpGenerator.generate(+len, { upperCase: false, specialChars: false, alphabets: false, digits : true });
 }
 
 const clearOtpAfterTimeOut = async (key) => {
-    setTimeout((key) => {
+    setTimeout(() => {
         console.log("delete")
         mp.delete(key)
-    }, 30000)
+    }, otpExpTime*1000)
 }
 
 const otpStore = {
@@ -20,6 +22,7 @@ const otpStore = {
     pushToStore : async (key) => {
         const otp = generateOtp(process.env.OTP_LEN);
         mp.set(key, {otp});
+        clearOtpAfterTimeOut(key)
     },
     compareOtp : (key, otp) => {
         const storedOtp = mp.get(key);

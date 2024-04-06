@@ -14,7 +14,7 @@ const mailOption = (emailId, subject, body) => {
         from: process.env.EMAIL_ID,
         to: emailId,
         subject: subject,
-        text: body
+        html: body
     }
 }
 

@@ -17,12 +17,19 @@ const loginSchema = zod.object({
     password: zod.string().regex(passwordRegex, { message: 'Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, and one digit' }),
 });
 
+const signUpSchema = zod.object({
+    name : zod.string().min(1),
+    emailId: zod.string().regex(emailRegex, { message: 'Invalid email format' }),
+    password: zod.string().regex(passwordRegex, { message: 'Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, and one digit' }),
+})
+
 const addConnectionInputSchema = zod.object({
     emailId: zod.string().email(),
     connections: zod.array(zod.string().email())
 });
 
 const validateSendAlertSchema = zod.object({
+    emailId: zod.string().email(),
     latitude: zod.string().regex(latitudeRegex, { message: 'Invalid latitude format' }),
     longitude: zod.string().regex(longitudeRegex, { message: 'Invalid longitude format' })
 });
@@ -69,7 +76,7 @@ const validateSendAlertInputs = (req, res, next) => {
 }
 
 const validateSignUpInputs = (req, res, next) => {
-    const result = loginSchema.safeParse(req.body.credentials)
+    const result = signUpSchema.safeParse(req.body.credentials)
     if(!result.success) {
         const errorMessages = result.error.errors.map(error => error.message);
         return res.json({

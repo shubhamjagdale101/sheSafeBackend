@@ -1,10 +1,15 @@
+const bcrypt = require("bcrypt");
 const {otpStore, clearOtpAfterTimeOut} = require("../module/otp");
 const User = require("../module/userModel");
 const sendMail = require("../service/mailService");
+const { generateToken } = require("../Middleware/authMiddleware");
+const {generateMailBodyForOTP} = require("../service/mailBodyGenerator");
+require('dotenv').config()
 
 const signUpMethod = async (req, res, next) => {
     try{
-        const {emailId, password, otp, connections} = req.body;
+        const {credentials, otp, connections} = req.body;
+        const {emailId, password, name} = credentials;
         let user = await User.findOne({emailId});
 
         console.log(user)
@@ -17,7 +22,7 @@ const signUpMethod = async (req, res, next) => {
         if(!otp || !otpStore.cheak(emailId)){
             otpStore.pushToStore(emailId)
             console.log("to signup")
-            // sendMail(emailId, "OTP for account creation from SheSafe", `your one time password for account creation is : ${otpStore.getOtp(emailId).otp}`)
+            sendMail(emailId, "OTP for account creation from SheSafe", generateMailBodyForOTP(otpStore.getOtp(emailId).otp, process.env.OTP_EXP_TIME))
             console.log(otpStore.getOtp(emailId).otp)
             return res.status(404).json({ 
                 message: 'OTP is sent to respective email address'
@@ -41,10 +46,9 @@ const signUpMethod = async (req, res, next) => {
                 }); 
             }
         }
-        
-        otpStore.clearOtp(emailId)
 
         user = new User({
+            name,
             emailId,
             password,
             connections
@@ -60,4 +64,22 @@ const signUpMethod = async (req, res, next) => {
     }
 }
 
-module.exports = signUpMethod
+const loginMethod = async (req, res, next) => {
+    try {
+        const { emailId, password} = req.body;
+        const user = await User.findOne({ emailId });
+
+        const match = await user.matchPassword(password);
+        if(match) return res.json({
+            email : user.emailId,
+            token : generateToken(user.emailId)
+        })
+        else return res.json({
+            message : "unable to unauthenticated"
+        })
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = {signUpMethod, loginMethod}

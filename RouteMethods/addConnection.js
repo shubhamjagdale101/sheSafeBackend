@@ -5,20 +5,24 @@ const addConnection = async (req, res, next) => {
         const {emailId, connections} = req.body;
     
         const user = await User.findOne({emailId});
-        const connectionList = user.connections;
+        if(!user){
+            res.json({
+                error : true,
+                messsage : `user with emailId : ${emailId} not found`
+            })
+        }
     
-        for(let i=0; i<connections.length; i++){
-            const connEmailId = connections[i];
+        for(let connEmailId of connections){
             const connUser = await User.findOne({emailId : connEmailId})
-            console.log(connUser)
+            console.log("add conn email : ",connUser)
             if(!connUser){
                 return res.status(404).json({ 
                     message: `${connEmailId} user not found`
                 }); 
             }
     
-            if(!connectionList.includes(connEmailId)){
-                user.connections.push(connEmailId)
+            if (!user.connections.includes(connEmailId)) {
+                user.connections.push(connEmailId);
             }
         }
     
@@ -32,4 +36,33 @@ const addConnection = async (req, res, next) => {
     }
 }
 
-module.exports = addConnection
+const removeConnection = async (req, res, next) => {
+    try {
+        const { emailId, connections } = req.body;
+
+        const user = await User.findOne({ emailId });
+        const connectionList = user.connections;
+
+        for (let i = 0; i < connections.length; i++) {
+            const connEmailId = connections[i];
+            const index = connectionList.indexOf(connEmailId);
+            if (index !== -1) {
+                connectionList.splice(index, 1);
+            } else {
+                return res.status(404).json({ 
+                    message: `${connEmailId} connection not found`
+                });
+            }
+        }
+
+        await user.save();
+        return res.status(200).json({
+            message: "Connections removed successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+module.exports = {addConnection, removeConnection}
