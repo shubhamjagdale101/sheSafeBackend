@@ -12,6 +12,7 @@ const authMiddleware = (req, res, next) => {
         const token = authHeader.substring(7); // Remove 'Bearer ' prefix
         try {
             const decoded = jwt.verify(token, secretKey);
+            req.body.emailId = decoded.email;
             next();
         } catch (error) {
             return res.json({

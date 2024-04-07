@@ -6,6 +6,7 @@ const { validateSignUpInputs, validateAddConnectionInput, validateLoginInputs, v
 const {signUpMethod, loginMethod} = require("./RouteMethods/login.js")
 const {authMiddleware} = require("./Middleware/authMiddleware.js")
 const sendAlertMethod = require("./RouteMethods/sendAlert.js")
+const { fetchAll, fetchUserByRegex } = require("./RouteMethods/fetchUsers.js")
 require('dotenv').config()
 
 const app = express()
@@ -17,6 +18,8 @@ app.post("/login", validateLoginInputs, loginMethod)
 app.post("/signup", validateSignUpInputs, signUpMethod)
 
 app.use(authMiddleware)
+app.get("/allUsers", fetchAll)
+app.get("/getUser", fetchUserByRegex)
 app.post("/addConnection", validateAddConnectionInput, addConnection)
 app.post("/removeConnection", validateAddConnectionInput, removeConnection)
 app.post("/sendAlert", validateSendAlertInputs, sendAlertMethod)
