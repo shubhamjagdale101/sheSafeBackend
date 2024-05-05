@@ -22,7 +22,7 @@ const sendMail = (emailId, subject, body) => {
     const mailOptionData = mailOption(emailId, subject, body);
 
     transporter.sendMail(mailOptionData, (err, info) => {
-        if(err) next(err)
+        if(err) throw err;
     })
 }
 
